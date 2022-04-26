@@ -24,6 +24,7 @@ print(w)
 plt.scatter(x[:,0],t)
 x0 = np.arange(1500,6000)
 y = w[0]*x0+w[1]
+loss1 = (y-t)**2
 
 plt.plot(x0,y, color="orange", label='Closed Form')
 plt.xlabel('Weight')
@@ -32,14 +33,21 @@ plt.legend()
 
 plt.subplot(1,2,2)
 xT = x.transpose()
-xTmean = np.mean(xT[0])
-xTstd = np.std(xT[0])
+xTmin = np.min(xT[0])
+xTmax = np.max(xT[0])
+tMax = np.max(t)
+tMin = np.min(t)
+xTav = np.mean(xT)
+tAv = np.mean(t)
 
 for i in range(len(xT[0])):
-    xT[0][i] = (xT[0][i] - xTmean) / xTstd
+    xT[0][i] = (xT[0][i] - xTmin) / (xTmax - xTmin)
 
 for i in range(len(t)):
-    t[i] = (t[i] - np.mean(t)) / np.std(t)
+    t[i] = (t[i] - tMin) / (tMax - tMin)
+
+xTavS = np.mean(xT)
+tAvS = np.mean(t)
 
 wK = np.ones((2,1))
 wK[0]=random()*10
@@ -57,16 +65,18 @@ while(True):
     wKT = wK.transpose()  
 plt.scatter(x[:,0],t)
 
-for i in range(len(xT[0])):
-    xT[0][i] = xT[0][i] * xTstd + xTmean    
-for i in range(len(t)):
-    t[i] = t[i] * np.std(t) + np.mean(t)
+xT[0] = xT[0] * (xTmax - xTmin) + xTmin
+t = t * (tMax - tMin) + tMin
 
-print(wK)
-    
 plt.scatter(x[:,0],t)
 
+x0 = np.arange(1500,6000)
+
+wK = wK * tMax/xTmax
+
+print(wK)
 y = wK[0]*x0+wK[1]
+loss = (y - t)**2
 plt.plot(x0, y, color="purple", label='Gradient Descent')
 plt.legend()
 plt.xlabel('Weight')

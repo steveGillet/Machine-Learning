@@ -1,1 +1,2 @@
-wPolyP
+print(xT)
+print(t)
