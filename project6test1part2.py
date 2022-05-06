@@ -11,6 +11,7 @@ from numpy import array
 import random
 from sklearn.metrics import accuracy_score
 import time
+from sklearn.metrics import multilabel_confusion_matrix, classification_report
 
 startTime = time.time()
 
@@ -59,17 +60,17 @@ class ConvNet(nn.Module):
     def __init__(self):
         super(ConvNet, self).__init__()
         self.seq = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(11,11), padding="valid", stride = 2),
+            nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(11,11), padding="valid"),
             nn.ReLU(),
 
-            nn.Conv2d(in_channels=6, out_channels=12, kernel_size=(11,11), padding="valid", stride = 2),
+            nn.Conv2d(in_channels=6, out_channels=12, kernel_size=(11,11), padding="valid"),
             nn.ReLU(),
 
-            nn.Conv2d(in_channels=12, out_channels=24, kernel_size=(11,11), padding="valid", stride = 2),
+            nn.Conv2d(in_channels=12, out_channels=24, kernel_size=(11,11), padding="valid"),
             nn.ReLU(),
 
             nn.Flatten(),
-            nn.Linear(24*4*4, len(classes)),
+            nn.Linear(24*71*71, len(classes)),
             #nn.Softmax(dim=1)            
         )
 
@@ -115,6 +116,10 @@ print(yTest[494:499], yTrain[:5])
 
 print("Train Accuracy : {:.3f}".format(accuracy_score(yTrain, train_preds)))
 print("Test  Accuracy : {:.3f}".format(accuracy_score(yTest, test_preds)))
+
+cf_matrix = multilabel_confusion_matrix(yTest, test_preds, labels=[False, True])
+print(cf_matrix)
+print(classification_report(yTest,test_preds))
 
 executionTime = (time.time() - startTime)
 print('Execution time in seconds: ' + str(executionTime))
