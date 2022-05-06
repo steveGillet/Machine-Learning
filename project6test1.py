@@ -9,7 +9,13 @@ import numpy as np
 from numpy import array
 import random
 from matplotlib import pyplot as plt
+import time
+import os
 
+startTime = time.time()
+
+list1 = os.listdir("Celegans_ModelGen/0") # dir is your directory path
+numFiles = len(list1)
 
 xTrain = np.zeros((10000,101,101))
 yTrain = np.zeros((10000))
@@ -42,17 +48,17 @@ class ConvNet(nn.Module):
     def __init__(self):
         super(ConvNet, self).__init__()
         self.seq = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(11,11), padding="same"),
+            nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(11,11), padding="valid"),
             nn.ReLU(),
 
-            nn.Conv2d(in_channels=32, out_channels=16, kernel_size=(11,11), padding="same"),
+            nn.Conv2d(in_channels=6, out_channels=12, kernel_size=(11,11), padding="valid"),
             nn.ReLU(),
 
-            nn.Conv2d(in_channels=16, out_channels=8, kernel_size=(11,11), padding="same"),
+            nn.Conv2d(in_channels=12, out_channels=24, kernel_size=(11,11), padding="valid"),
             nn.ReLU(),
 
             nn.Flatten(),
-            nn.Linear(8*101*101, len(classes)),
+            nn.Linear(24*71*71, len(classes)),
             #nn.Softmax(dim=1)            
         )
 
@@ -91,7 +97,7 @@ torch.manual_seed(42) ##For reproducibility.This will make sure that same random
 
 epochs = 25
 learning_rate = torch.tensor(1/1e3) # 0.001
-batch_size=128
+batch_size=18
 
 cross_entropy_loss = nn.CrossEntropyLoss()
 optimizer = SGD(params=conv_net.parameters(), lr=learning_rate)
@@ -107,4 +113,7 @@ TrainModelInBatches(conv_net,
 # pickle.dump(conv_net, conv_net_file)
 # conv_net_file.close()
 
-torch.save(conv_net.state_dict(), 'conv_net_model.ckpt')
+torch.save(conv_net.state_dict(), 'conv_net_model2.ckpt')
+
+executionTime = (time.time() - startTime)
+print('Execution time in seconds: ' + str(executionTime))

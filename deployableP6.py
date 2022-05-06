@@ -11,48 +11,26 @@ from numpy import array
 import random
 from sklearn.metrics import accuracy_score
 import time
+import os
 
 startTime = time.time()
 
-xTrain = np.zeros((10000,101,101))
-xTest = np.zeros((1000,101,101))
-yTrain = np.zeros((10000))
-yTest = np.zeros((1000))
-yTrain[0:5000] = 1
-yTest[0:500] = 1
+dir1 = input("Enter Directory Location:")
+list1 = os.listdir(dir1) # dir is your directory path
+numFiles = len(list1)
 
-for i in range (5000):
-    xTrain[i] = Image.open(r"C:\Users\steph\OneDrive\Desktop\School\Machine Learning\Celegans_ModelGen\0\image_{}.png".format(i+1))
-    xTrain[i+5000] = Image.open(r"C:\Users\steph\OneDrive\Desktop\School\Machine Learning\Celegans_ModelGen\1\image_{}.png".format(i+1))
-for i in range (500):
-    xTest[i] = Image.open(r"C:\Users\steph\OneDrive\Desktop\School\Machine Learning\Celegans_ModelGen\0\image_{}.png".format(i+5001))
-    xTest[i+500] = Image.open(r"C:\Users\steph\OneDrive\Desktop\School\Machine Learning\Celegans_ModelGen\1\image_{}.png".format(i+5001))
+xTest = np.zeros((numFiles,101,101))
 
-temp1 = list(zip(xTrain, yTrain))
-random.shuffle(temp1)
-xTrain, yTrain = zip(*temp1)
-xTrain, yTrain = list(xTrain), list(yTrain)
-xTrain = np.array(xTrain)
-yTrain = np.array(yTrain)
+for i in range (numFiles):
+    xTest[i] = Image.open(dir1 + "/" + list1[i])
 
-temp2 = list(zip(xTest, yTest))
-random.shuffle(temp2)
-xTest, yTest = zip(*temp2)
-xTest, yTest = list(xTest), list(yTest)
-xTest = np.array(xTest)
-yTest = np.array(yTest)
+xTest = torch.tensor(xTest, dtype=torch.float32)
+                                   
+xTest = xTest.reshape(-1,1,101,101)
 
-xTrain, xTest, yTrain, yTest = torch.tensor(xTrain, dtype=torch.float32),\
-                                   torch.tensor(xTest, dtype=torch.float32),\
-                                   torch.tensor(yTrain, dtype=torch.long),\
-                                   torch.tensor(yTest, dtype=torch.long)
+xTest = xTest/255.0
 
-xTrain, xTest = xTrain.reshape(-1,1,101,101), xTest.reshape(-1,1,101,101)
-
-xTrain, xTest = xTrain/255.0, xTest/255.0
-
-
-classes = yTrain.unique()
+classes = (0,1)
 
 
 class ConvNet(nn.Module):
@@ -103,18 +81,13 @@ test_preds = torch.cat(test_preds) ## Combine predictions of all batches
 
 test_preds = test_preds.argmax(dim=1)
 
-train_preds = MakePredictions(conv_net, xTrain, batch_size=18) ## Make Predictions on train dataset
-
-train_preds = torch.cat(train_preds)
-
-train_preds = train_preds.argmax(dim=1)
-
-print(test_preds[494:499], train_preds[:5])
-print(yTest[494:499], yTrain[:5])
+for i in range(numFiles):
+    print("File 1: {}".format(list1[i]))
+    print("Prediction: {}".format(test_preds[i]))
 
 
-print("Train Accuracy : {:.3f}".format(accuracy_score(yTrain, train_preds)))
-print("Test  Accuracy : {:.3f}".format(accuracy_score(yTest, test_preds)))
+print("Number of Images with Worms    (1) : {:.3f}".format(list(test_preds).count(1)))
+print("Number of Images without Worms (0) : {:.3f}".format(list(test_preds).count(0)))
 
 executionTime = (time.time() - startTime)
 print('Execution time in seconds: ' + str(executionTime))
