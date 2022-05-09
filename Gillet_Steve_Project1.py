@@ -40,11 +40,10 @@ tMin = np.min(t)
 xTav = np.mean(xT)
 tAv = np.mean(t)
 
-for i in range(len(xT[0])):
-    xT[0][i] = (xT[0][i] - xTmin) / (xTmax - xTmin)
 
-for i in range(len(t)):
-    t[i] = (t[i] - tMin) / (tMax - tMin)
+for i in range(len(xT[0])):
+    xT[0][i] = xT[0][i] / xTmax
+    t[i] = t[i] / xTmax 
 
 xTavS = np.mean(xT)
 tAvS = np.mean(t)
@@ -57,24 +56,25 @@ wKT = wK.transpose()
 tT = t.transpose()
 p = 0.00025
 
+# the higher the stopping threshold the less accurate it is, diverging? taking a lot of steps to reach
 while(True): 
     wK1 = wK - p*(2*wKT.dot(xT).dot(x)-2*tT.dot(x)).transpose()
-    if((abs(wK-wK1)<.0001).all()):
+    if((abs(wK-wK1)<.000001).all()):
         break
     wK = wK1
     wKT = wK.transpose()  
 plt.scatter(x[:,0],t)
 
-xT[0] = xT[0] * (xTmax - xTmin) + xTmin
-t = t * (tMax - tMin) + tMin
+xT[0] = xT[0] * xTmax
+t = t * xTmax
 
 plt.scatter(x[:,0],t)
 
 x0 = np.arange(1500,6000)
 
-wK = wK * tMax/xTmax
+# denormalize, don't need to scale slope
+wK[1] = wK[1] * xTmax
 
-print(wK)
 y = wK[0]*x0+wK[1]
 loss = (y - t)**2
 plt.plot(x0, y, color="purple", label='Gradient Descent')
