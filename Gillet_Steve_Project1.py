@@ -73,8 +73,10 @@ plt.scatter(x[:,0],t)
 x0 = np.arange(1500,6000)
 
 # denormalize, don't need to scale slope
+print(wK)
 wK[1] = wK[1] * xTmax
 
+print(wK)
 y = wK[0]*x0+wK[1]
 loss = (y - t)**2
 plt.plot(x0, y, color="purple", label='Gradient Descent')
