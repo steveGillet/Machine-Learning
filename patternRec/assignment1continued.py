@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 dataFrame = pd.read_excel('Proj1DataSet.xlsx')
 dataArray = dataFrame.to_numpy()
-# print(dataArray)
+print(dataArray)
 
 virginica = dataArray[dataArray[:, 4] == 'virginica']
 versicolor = dataArray[dataArray[:, 4] == 'versicolor']
@@ -40,6 +40,16 @@ y = x0*wtest[0][0] + x0*wtest[0][1] + wtest[0][2]
 plt.plot(x0, y)
 plt.show()
 
-wlintest = np.linalg.pinv(np.array(setosa[:,0]))
+X = np.append(np.append(np.append(setosa[:,0], virginica[:,0], 0).reshape(len(virginica)*2, 1), np.append(setosa[:,1], virginica[:,1], 0).reshape(len(virginica)*2, 1), 1), np.ones((len(virginica)*2, 1)), 1)
+print(X)
+t = np.append(np.ones((50,1)), -np.ones((50,1))).reshape(len(virginica)*2, 1)
+print(t)
+wlintest = np.linalg.pinv(X.astype(int)).dot(t)
 
-print(wtest[0][0])
+plt.scatter(setosa[:,0],setosa[:,1], c='red')
+plt.scatter(virginica[:,0],virginica[:,1])
+
+print(wlintest)
+print(wlintest[2,0])
+plt.plot(x0, (-wlintest[0,0]*x0-wlintest[2,0])/wlintest[1,0])
+plt.show()
