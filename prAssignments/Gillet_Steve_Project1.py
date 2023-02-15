@@ -15,29 +15,29 @@ dataArray = np.where(dataArray != 'virginica', dataArray, 3)
 
 sepLen = dataArray[:,0]
 sepWid = dataArray[:,1]
-pedalLen = dataArray[:,2]
-pedalWid = dataArray[:,3]
+petalLen = dataArray[:,2]
+petalWid = dataArray[:,3]
 classFlower = dataArray[:,4]
 
 sepalLenMin = sepLen.min()
 sepalWidMin = sepWid.min()
-pedalLenMin = pedalLen.min()
-pedalWidMin = pedalWid.min()
+petalLenMin = petalLen.min()
+petalWidMin = petalWid.min()
 
 sepalLenMax = sepLen.max()
 sepalWidMax = sepWid.max()
-pedalLenMax = pedalLen.max()
-pedalWidMax = pedalWid.max()
+petalLenMax = petalLen.max()
+petalWidMax = petalWid.max()
 
 sepalLenMean = sepLen.mean()
 sepalWidMean = sepWid.mean()
-pedalLenMean = pedalLen.mean()
-pedalWidMean = pedalWid.mean()
+petalLenMean = petalLen.mean()
+petalWidMean = petalWid.mean()
 
 sepalLenVar = sepLen.var()
 sepalWidVar = sepWid.var()
-pedalLenVar = pedalLen.var()
-pedalWidVar = pedalWid.var()
+petalLenVar = petalLen.var()
+petalWidVar = petalWid.var()
 
 swSetosa = 0
 swVersicolor = 0
@@ -73,14 +73,86 @@ plt.scatter(sepWid, classFlower, marker='x', c='red')
 plt.xlim(0,8)
 plt.ylim(1,3)
 plt.subplot(2,2,3,title='PetL vs. Class')
-plt.scatter(pedalLen, classFlower, marker='x', c='red')
+plt.scatter(petalLen, classFlower, marker='x', c='red')
 plt.xlim(0,8)
 plt.ylim(1,3)
 plt.subplot(2,2,4,title='PetW vs. Class')
-plt.scatter(pedalWid, classFlower, marker='x', c='red')
+plt.scatter(petalWid, classFlower, marker='x', c='red')
 plt.xlim(0,8)
 plt.ylim(1,3)
 plt.show()
 
-x = setosa[:, :4]
-print(x)
+print('Setosa Vs. Versi + Virgi, All Features') 
+rho = 0.001
+x = np.append(np.append(dataArray[:50, :4], np.ones((50,1)),1), np.append(-dataArray[50:, :4], -np.ones((100,1)),1), 0)
+w = np.random.rand(5,1)
+epochs = 0
+flag = 1
+while flag:
+  flag = 0
+  for j in range(len(x)):
+    if w.transpose().dot(x[j].reshape(5,1))[0] < 0:
+      w = w + rho*(x[j].reshape(5,1))
+      flag = 1
+  epochs +=1
+print('Epochs: ', epochs)
+print('Weights: ', w)
+
+x = np.append(dataArray[:,:4], np.ones((150,1)),1)
+t = np.append(np.ones((50,1)), -np.ones((100,1)), 0)
+w = np.linalg.pinv(x.astype(int)).dot(t)
+print('Weights (LS): ', w)
+misclassified = 0
+for x in x[:50]:
+  if w.transpose().dot(x.reshape(5,1)) < 0:
+    misclassified+=1
+for x in x[50:]:
+  if w.transpose().dot(x.reshape(5,1)) > 0:
+    misclassified+=1
+print('Misclassifications: ', misclassified)
+
+print('Setosa Vs. Versi + Virgi, Features 3 and 4') 
+plt.title('Setosa Vs. Versi + Virgi, Features 3 and 4') 
+rho = 0.001
+x = np.append(np.append(dataArray[:50, 2:4], np.ones((50,1)),1), np.append(-dataArray[50:, 2:4], -np.ones((100,1)),1), 0)
+w = np.random.rand(3,1)
+epochs = 0
+flag = 1
+while flag:
+  flag = 0
+  for j in range(len(x)):
+    if w.transpose().dot(x[j].reshape(3,1))[0] < 0:
+      w = w + rho*(x[j].reshape(3,1))
+      flag = 1
+  epochs +=1
+print('Epochs: ', epochs)
+print('Weights: ', w)
+
+plt.scatter(setosa[:,2],setosa[:,3], c='red', label='Setosa')
+plt.scatter(dataArray[50:,2],dataArray[50:,3], label='Versi+Virgi')
+
+x0 = np.linspace(np.min(dataArray[:,2]), np.max(dataArray[:,2]))
+plt.plot(x0, (-w[0,0]*x0-w[2,0])/w[1,0], c='green', label='Batch Perceptron Decision Boundary')
+
+
+
+x = np.append(dataArray[:,2:4], np.ones((150,1)),1)
+t = np.append(np.ones((50,1)), -np.ones((100,1)), 0)
+w = np.linalg.pinv(x.astype(int)).dot(t)
+print('Weights (LS): ', w)
+misclassified = 0
+for x in x[:50]:
+  if w.transpose().dot(x.reshape(3,1)) < 0:
+    misclassified+=1
+for x in x[50:]:
+  if w.transpose().dot(x.reshape(3,1)) > 0:
+    misclassified+=1
+print('Misclassifications: ', misclassified)
+
+plt.plot(x0, (-w[0,0]*x0-w[2,0])/w[1,0], c='orange', label='Least Squares Decision Boundary')
+# plt.xlim(np.min(dataArray[:,2]), np.max(dataArray[:,2]))
+plt.ylim(np.min(dataArray[:,3]) - 0.5, np.max(dataArray[:,3]) + 0.5)
+plt.legend()
+plt.xlabel('Feature 3 (Petal Length)')
+plt.ylabel('Feature 4 (Petal Width)')
+plt.show()

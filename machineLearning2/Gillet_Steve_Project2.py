@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 ns = [10, 100]
 
+np.random.seed(23)
+
 for n in ns:
 
   nTrain = n
