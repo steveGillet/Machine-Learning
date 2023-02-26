@@ -19,6 +19,23 @@ petalLen = dataArray[:,2]
 petalWid = dataArray[:,3]
 classFlower = dataArray[:,4]
 
+
+plt.scatter(setosa[:,0], setosa[:,1], c='red', label='Setosa')
+plt.scatter(versicolor[:,0], versicolor[:,1], c='green', label='Versicolor')
+plt.scatter(virginica[:,0], virginica[:,1], c='blue', label='Virginica')
+plt.xlabel('Feature 1 (Sepal Length)')
+plt.ylabel('Feature 2 (Sepal Width)')
+plt.legend()
+plt.show()
+
+plt.scatter(setosa[:,2], setosa[:,3], c='red', label='Setosa')
+plt.scatter(versicolor[:,2], versicolor[:,3], c='green', label='Versicolor')
+plt.scatter(virginica[:,2], virginica[:,3], c='blue', label='Virginica')
+plt.xlabel('Feature 3 (Petal Length)')
+plt.ylabel('Feature 4 (Petal Width)')
+plt.legend()
+plt.show()
+
 sepalLenMin = sepLen.min()
 print('Sepal Length Minimum: ', sepalLenMin)
 sepalWidMin = sepWid.min()
@@ -55,29 +72,26 @@ print('Petal Length Variance: ', petalLenVar)
 petalWidVar = petalWid.var()
 print('Petal Width Variance: ', petalWidVar)
 
-swSetosa = 0
-swVersicolor = 0
-swVirginica = 0
-for i in range(4):
-  swSetosa += setosa[:,i].var() * 1/3
-  swVersicolor += versicolor[:,i].var() * 1/3
-  swVirginica += virginica[:,i].var() * 1/3
-print('Within-Class Variance Setosa: ', swSetosa)
-print('Within-Class Variance Versicolor: ', swVersicolor)
-print('Within-Class Variance Virginica: ', swVirginica)
+swSepalLen = dataArray[:50,0].var()*1/3 + dataArray[50:100,0].var()*1/3 + dataArray[100:150,0].var()*1/3
+swSepalWid = dataArray[:50,1].var()*1/3 + dataArray[50:100,1].var()*1/3 + dataArray[100:150,1].var()*1/3
+swPetalLen = dataArray[:50,2].var()*1/3 + dataArray[50:100,2].var()*1/3 + dataArray[100:150,2].var()*1/3
+swPetalWid = dataArray[:50,3].var()*1/3 + dataArray[50:100,3].var()*1/3 + dataArray[100:150,3].var()*1/3
+
+print('Within-Class Variance Sepal Length: ', swSepalLen)
+print('Within-Class Variance Sepal Width: ', swSepalWid)
+print('Within-Class Variance Petal Length: ', swPetalLen)
+print('Within-Class Variance Petal Width: ', swPetalWid)
 
 
-sbSetosa = 0
-sbVersicolor = 0
-sbVirginica = 0
-for i in range(4):
-  sbSetosa += 1/3 * (setosa[:,i].mean() - dataArray[:,i].mean())**2
-  sbVersicolor += 1/3 * (versicolor[:,i].mean() - dataArray[:,i].mean())**2
-  sbVirginica += 1/3 * (virginica[:,i].mean() - dataArray[:,i].mean())**2
+sbSepalLen = 1/3*(dataArray[:50,0].mean()-sepalLenMean)**2 + 1/3*(dataArray[50:100,0].mean()-sepalLenMean)**2 + 1/3*(dataArray[100:150,0].mean()-sepalLenMean)**2
+sbSepalWid = 1/3*(dataArray[:50,1].mean()-sepalWidMean)**2 + 1/3*(dataArray[50:100,1].mean()-sepalWidMean)**2 + 1/3*(dataArray[100:150,1].mean()-sepalWidMean)**2
+sbPetalLen = 1/3*(dataArray[:50,2].mean()-petalLenMean)**2 + 1/3*(dataArray[50:100,2].mean()-petalLenMean)**2 + 1/3*(dataArray[100:150,2].mean()-petalLenMean)**2
+sbPetalWid = 1/3*(dataArray[:50,3].mean()-petalWidMean)**2 + 1/3*(dataArray[50:100,3].mean()-petalWidMean)**2 + 1/3*(dataArray[100:150,3].mean()-petalWidMean)**2
 
-print('Between-Class Variance Setosa: ', sbSetosa)
-print('Between-Class Variance Versicolor: ', sbVersicolor)
-print('Between-Class Variance Virginica: ', sbVirginica)
+print('Between-Class Variance Sepal Length: ', sbSepalLen)
+print('Between-Class Variance Sepal Width: ', sbSepalWid)
+print('Between-Class Variance Petal Length: ', sbPetalLen)
+print('Between-Class Variance Petal Width: ', sbPetalWid)
 
 corrcoef = np.corrcoef(dataArray.astype(int), rowvar=False)
 
@@ -217,6 +231,53 @@ for i in range(100,150):
 print('Misclassifications: ', misclassified)
 
 ########################################################################
+print('Virgi Vs. Versi + Setosa, Features 3 and 4, -0.3 Decision Boundary')
+plt.title('Virgi Vs. Versi + Setosa, Features 3 and 4') 
+rho = 0.001
+x = np.append(np.append(dataArray[:100, 2:4], np.ones((100,1)),1), np.append(-dataArray[100:, 2:4], -np.ones((50,1)),1), 0)
+D = len(x[0])
+w = np.random.rand(D,1)
+epochs = 0
+flag = 1
+nonConvergence = 0
+while flag and nonConvergence < 1000:
+  nonConvergence += 1
+  flag = 0
+  for j in range(len(x)):
+    if w.transpose().dot(x[j].reshape(D,1))[0] < 0:
+      w = w + rho*(x[j].reshape(D,1))
+      flag = 1
+  epochs +=1
+print('Epochs: ', epochs)
+print('Weights: ', w)
+
+x = np.append(dataArray[:,2:4], np.ones((150,1)),1)
+t = np.append(np.ones((100,1)), -np.ones((50,1)), 0)
+w = np.linalg.pinv(x.astype(int)).dot(t)
+print('Weights (LS): ', w)
+misclassified = 0
+
+for i in range(0,100):
+  if w.transpose().dot(x[i].reshape(D,1)) < -0.3:
+    misclassified += 1
+
+for i in range(100,150):
+  if w.transpose().dot(x[i].reshape(D,1)) > -0.3:
+    misclassified += 1  
+
+print('Misclassifications: ', misclassified)
+print(w)
+plt.scatter(virginica[:,2],virginica[:,3], c='red', label='Virginica')
+plt.scatter(dataArray[:100,2],dataArray[:100,3], label='Versi+Setosa')
+plt.plot(x0, (-0.3-w[0,0]*x0-w[2,0])/w[1,0], c='orange', label='Least Squares Decision Boundary')
+# plt.xlim(np.min(dataArray[:,2]), np.max(dataArray[:,2]))
+plt.ylim(np.min(dataArray[:,3]) - 0.5, np.max(dataArray[:,3]) + 0.5)
+plt.legend()
+plt.xlabel('Feature 3 (Petal Length)')
+plt.ylabel('Feature 4 (Petal Width)')
+plt.show()
+
+########################################################################
 print('Virgi Vs. Versi + Setosa, Features 3 and 4')
 plt.title('Virgi Vs. Versi + Setosa, Features 3 and 4') 
 rho = 0.001
@@ -255,7 +316,7 @@ print('Misclassifications: ', misclassified)
 print(w)
 plt.scatter(virginica[:,2],virginica[:,3], c='red', label='Virginica')
 plt.scatter(dataArray[:100,2],dataArray[:100,3], label='Versi+Setosa')
-plt.plot(x0, (-w[0,0]*x0-w[2,0])/w[1,0], c='orange', label='Least Squares Decision Boundary')
+plt.plot(x0, (0-w[0,0]*x0-w[2,0])/w[1,0], c='orange', label='Least Squares Decision Boundary')
 # plt.xlim(np.min(dataArray[:,2]), np.max(dataArray[:,2]))
 plt.ylim(np.min(dataArray[:,3]) - 0.5, np.max(dataArray[:,3]) + 0.5)
 plt.legend()
