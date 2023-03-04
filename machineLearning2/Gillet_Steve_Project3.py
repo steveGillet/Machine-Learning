@@ -11,22 +11,22 @@ x0 = np.linspace(0,1,N)
 hx = np.sin(2*np.pi*x0)
 Xtest = np.random.uniform(0,1,(testN))
 tTest = np.sin(2*np.pi*Xtest) + np.random.normal(0,.3,(testN))
-# plt.plot(x0, hx)
+tTest = tTest.reshape(testN, 1)
 
-
-
+# model complexity
 M = 4
 I = np.identity(M+1)
-lamb = np.linspace(0,3,N)
+lamb = np.linspace(-1.9,5,N)
 phi = np.ones((N, M+1))
 yMean = np.zeros((N, N))
 bias = np.zeros((N, 1))
 variance = np.zeros((N, 1))
 testError = np.zeros((N, 1))
-phiTest = np.ones((N, M+1))
-for i in range(N):
+phiTest = np.ones((testN, M+1))
+for i in range(testN):
   for j in range(1,M+1):
-    phiTest[i,j] = np.exp((-(Xtest[i]-(j)/(M+1))**2)/(2*s**2))
+    phiTest[i,j] = np.exp((-(Xtest[i]-j/(M+1))**2)/(2*s**2))
+
 
 for g in range(N):
   y = np.zeros((L, N))
@@ -43,9 +43,7 @@ for g in range(N):
 
     for j in range(1,M+1):
       y[h] += w[j]*np.exp((-(x0-j/(M+1))**2)/(2*s**2))
-
   wTest /= L
-
 
   yMean[g] = np.mean(y, axis=0)
   for h in range(N):
@@ -55,15 +53,12 @@ for g in range(N):
     variance[g] /= L
   bias[g] /= N
   variance[g] /= N
-  # print(wTest)
-  # print(phiTest)
-  testError[g] = (np.sqrt((np.linalg.norm(phiTest.dot(wTest)-tTest, ord =2)**2)/testN))
-  
-  # plt.scatter(X,t,c='orange')
-  # plt.plot(x0,yMean[g], c='black')
-# print(testError)
-plt.plot(np.log(lamb), bias)
-plt.plot(np.log(lamb), variance)
-plt.plot(np.log(lamb), bias+variance)
-plt.plot(np.log(lamb), testError)
+  testError[g] = np.mean((phiTest.dot(wTest) - tTest)**2)
+
+variance = variance *20
+plt.plot(np.log(lamb), bias, label='bias^2')
+plt.plot(np.log(lamb), variance, label='variance')
+plt.plot(np.log(lamb), bias+variance, label='bias^2+variance')
+plt.plot(np.log(lamb), testError, label='test error')
+plt.legend()
 plt.show()

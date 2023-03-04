@@ -52,7 +52,7 @@ for n in ns:
       for j in range(0,M):
         phiTest[i, j] = Xtest[i]**(M-j)
 
-    # print(phiTest)
+    print(phiTest)
 
     trainError.append(np.sqrt((np.linalg.norm(phiTrain.dot(w) - tTrain, ord =2)**2)/nTrain))
     testError.append(np.sqrt((np.linalg.norm(phiTest.dot(w) - tTest, ord =2)**2)/nTest))
