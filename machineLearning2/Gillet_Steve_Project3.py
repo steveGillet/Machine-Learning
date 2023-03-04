@@ -56,9 +56,10 @@ for g in range(N):
   testError[g] = np.mean((phiTest.dot(wTest) - tTest)**2)
 
 variance = variance *20
-plt.plot(np.log(lamb), bias, label='bias^2')
+plt.plot(np.log(lamb), bias, label='bias$^2$')
 plt.plot(np.log(lamb), variance, label='variance')
-plt.plot(np.log(lamb), bias+variance, label='bias^2+variance')
+plt.plot(np.log(lamb), bias+variance, label='bias$^2$ + variance')
 plt.plot(np.log(lamb), testError, label='test error')
+plt.xlabel(r'ln $\lambda$')
 plt.legend()
 plt.show()
