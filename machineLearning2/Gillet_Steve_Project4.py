@@ -1,12 +1,22 @@
-from mvpa2.suite import *
-filepath = os.path.join(pymvpa_datadbroot, 'mnist', "mnist.hdf5")
-datasets = h5load(filepath)
-train = datasets['train']
-test = datasets['test']
-print(train)
+import idx2numpy
+import numpy as np
+import matplotlib.pyplot as plt
 
-print(test)
+# Load the training images and labels
+train_images = idx2numpy.convert_from_file('train-images.idx3-ubyte')
+train_labels = idx2numpy.convert_from_file('train-labels.idx1-ubyte')
 
-# assign a mapper able to recreate 28x28 pixel image arrays
-test.a.mapper = FlattenMapper(shape=(28, 28))
-test.mapper.reverse(test).shape
+# Load the test images and labels
+test_images = idx2numpy.convert_from_file('t10k-images.idx3-ubyte')
+test_labels = idx2numpy.convert_from_file('t10k-labels.idx1-ubyte')
+
+train_labels = np.eye(10)[train_labels]
+M=10
+K = 10
+w = np.random.randn(K,M+1)
+phi = np.ones((M+1, 1))
+s=0.1
+for j in range(1,M+1):
+    phi[j] = np.exp((-(train_images[0].flatten()[0]-j/(M+1))**2)/(2*s**2))
+y = np.exp(w.dot(phi))/np.sum(np.exp(w.dot(phi)))
+print(y)
