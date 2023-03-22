@@ -1,0 +1,129 @@
+import tensorflow as tf
+import matplotlib.pyplot as plt
+import numpy as np
+import time
+
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+def main():
+    # Display images with labels (Note that this blocks the code from running due to plt.show)
+    #display10Images(x_train, y_train)
+
+    # Linearize Train & Test Data 
+    trainLinearized = np.reshape(x_train, (x_train.shape[0], -1))
+    testLinearized = np.reshape(x_test, (x_test.shape[0], -1))
+
+    # Number of training images
+    NTrain = trainLinearized.shape[0]
+    # Number of testing images
+    NTest = testLinearized.shape[0]
+    # Display number of train/test images
+    print("Number of training samples: %d" % NTrain)
+    print("Number of test samples: %d" % NTest) 
+
+    # Number of Classes
+    K = 10
+
+    # One Hot-Encoding Targets
+    targetTrain = oneHotEncoding(NTrain, K, y_train)
+    targetTest = oneHotEncoding(NTest, K, y_test) 
+    
+    # Normalize Data (Min-Max Scaling 0-1)
+    trainNorm = trainLinearized/255 
+    testNorm = testLinearized/255 
+
+    # Generate Data Matrix (Append 1's to Data)
+    trainDataMatrix = np.hstack((trainNorm, np.ones((trainNorm.shape[0], 1))))
+    testDataMatrix = np.hstack((testNorm, np.ones((testNorm.shape[0], 1))))
+
+    #Gradient Descent w/ Momentum
+    model, iterations, trainTime = gradientDescentWithMomentum(trainDataMatrix, targetTrain, 0.01, 0.9, 1000)
+
+    print('Iterations: %d' % iterations)
+    print('Training time: %.2f seconds' % trainTime)
+
+    modelAccuracy = calculateAccuracy(model, testDataMatrix, targetTest)
+
+    print('Model accuracy: %.2f' % modelAccuracy)
+
+def gradientDescentWithMomentum(Data, Target, alpha, beta, epochs):
+    # Start timer
+    start = time.time()
+    # Initialize weights and velocity and iterations
+    w = np.zeros((Data.shape[1], Target.shape[1]))
+    v = np.zeros_like(w)
+    iterations = 0
+
+    # Loop over epochs
+    for epoch in range(epochs):
+        # Compute logits (scores)
+        logits = np.dot(Data, w)
+
+        # Apply softmax function to obtain class probabilities
+        probs = softmax(logits)
+
+        # Compute gradient of loss with respect to weights
+        grad = np.dot(Data.T, probs) - np.dot(Data.T, Target)
+
+        # Update velocity and weights with momentum
+        v = beta * v + (1 - beta) * grad
+        w = w - alpha * v
+
+        #Increment iteration counter
+        iterations = iterations + 1
+
+    # End Timer
+    end = time.time()
+    # Calculate Total Time
+    totalTime = end - start
+
+    return w, iterations, totalTime
+
+def softmax(x):
+    # Compute softmax for each row of x
+    exp_scores = np.exp(x)
+    return exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+
+def oneHotEncoding(N, K, labelData):
+    Data = np.zeros((N,K))
+    for i in range(N):
+        Data[i, labelData[i]] = 1
+        # if(i<5):
+        #     print('Label: %s ' % (labelData[i]))
+        #     print(Data[i])
+
+    return Data
+
+def display10Images(image, label):
+    # Display 10 images
+    fig, axs = plt.subplots(nrows=2, ncols=5, figsize=(10, 4))
+
+    for i in range(10):       
+        # Display the image and label
+        ax = axs[i//5][i%5]
+        ax.imshow(image[i], cmap='gray')
+        ax.set_title('Label: %s' % label[i])
+        ax.axis('off')
+
+    plt.show()
+
+def calculateAccuracy(W, DataX, DataT):
+    # Compute predicted class probabilities using softmax function
+    logits = np.dot(DataX, W)
+    probs = softmax(logits)
+    predicted_classes = np.argmax(probs, axis=1)
+
+    # Compute true class labels from one-hot encoding
+    true_classes = np.argmax(DataT, axis=1)
+
+    # Compute number of correctly classified examples
+    correct = np.sum(predicted_classes == true_classes)
+
+    # Compute and return accuracy as a percentage
+    accuracy = (correct / DataX.shape[0]) * 100
+    return accuracy
+
+
+if __name__ == "__main__":
+    main()
