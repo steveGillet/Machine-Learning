@@ -1,106 +1,68 @@
 import numpy as np
-import idx2numpy
-import numpy as np
 import matplotlib.pyplot as plt
 import os
 import cv2
+import pandas as pd
 
-# # Load the training images and labels
-# train_images = idx2numpy.convert_from_file('train-images.idx3-ubyte')
-# train_labels = idx2numpy.convert_from_file('train-labels.idx1-ubyte')
+model = 0
+while model != 1 and model != 2:
+    model = int(input('Worms(1) or MNIST(2)? '))
+if model == 1:
+    w = np.load('trainedModelWorms.npz')['x']
+elif model == 2:
+    w = np.load('trainedModelMNIST.npz')['x']
 
-# # Load the test images and labels
-# test_images = idx2numpy.convert_from_file('t10k-images.idx3-ubyte')
-# test_labels = idx2numpy.convert_from_file('t10k-labels.idx1-ubyte')
-
-# t = np.eye(10)[test_labels]
-# nTrain = len(test_images) 
-# M=10
-# K = 10
-# # w = np.random.randn(K,M+1)
-# # phi = np.ones((M+1, 1))
-# s=0.1
-# beta = 0.9
-# rho = 0.01
-# # for j in range(1,M+1):
-# #     phi[j] = np.exp((-(train_images[0].flatten()[0]-j/(M+1))**2)/(2*s**2))
-# # y = np.exp(w.dot(phi))/np.sum(np.exp(w.dot(phi)))
-# # print(y)
-
-# def softmax(x):
-#     xShift = np.exp(x-np.max(x, axis=1, keepdims=True))
-#     return xShift / np.sum(xShift, axis=1, keepdims=True)
-
-# X = np.hstack((np.reshape(test_images,(-1, test_images.shape[1]*test_images.shape[2])), np.ones((nTrain,1))))
-
-# w = np.load('weights.npy')
-# y = softmax(X.dot(w))
-# print(y[1])
-# print(X[1])
-# print(t[1])
-# plt.imshow(test_images[1])
-# plt.show()
-
-########################################################################################################
-
-def load_images_from_folder(folder):
-    images = []
-    for filename in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder, filename))
-        if img is not None:
-            img = img[:,:,0]
-            img = np.resize(img, (28,28))
-            img = img / 255
-            images.append(img)
-    return np.array(images)
-
-folder_path = './Celegans_ModelGen/0'
-negImages = load_images_from_folder(folder_path)
-# negImages = negImages[:,:,:,0]
-# negImages = negImages / 255
-
-folder_path = './Celegans_ModelGen/1'
-posImages = load_images_from_folder(folder_path)
-# posImages = posImages[:,:,:,0]
-# posImages = posImages / 255
-
-trainingPercent = 0.8
-
-nTest = int(len(negImages)*(1-trainingPercent) + len(posImages)*(1-trainingPercent))-1
-nTrain = int(len(negImages)*trainingPercent + len(posImages)*trainingPercent)
-print(nTest)
-print(nTrain)
-xTest = np.vstack((negImages[int(nTrain/2):], posImages[int(nTrain/2):]))
-
-tTest = np.vstack((np.hstack((np.zeros((int(nTest/2),1)), np.ones((int(nTest/2),1)))), np.hstack((np.ones((int(nTest/2),1)), np.zeros((int(nTest/2),1))))))
-shuffleIndices = np.arange(tTest.shape[0])
-np.random.shuffle(shuffleIndices)
-xTest = xTest[shuffleIndices]
-tTest = tTest[shuffleIndices]
-
-beta = 0.9
-rho = 0.01
-K=2
+folderPath = input('Name the directory where the images are located: ')
 
 def softmax(x):
-    xShift = np.exp(x-np.max(x, axis=1, keepdims=True))
-    return xShift / np.sum(xShift, axis=1, keepdims=True)
+    # Compute softmax using log-sum-exp trick
+    shift_x = x - np.max(x, axis=1, keepdims=True)
+    exp_scores = np.exp(shift_x)
+    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
 
-X = np.hstack((np.reshape(xTest,(-1, xTest.shape[1]*xTest.shape[2])), np.ones((nTest,1))))
-w = np.load('weightsWorms.npy')
+    return probs
 
-y = softmax(X.dot(w))
+images = []
+filenames = []
+filenames = os.listdir(folderPath)
+for filename in filenames:
+    img = cv2.imread(os.path.join(folderPath, filename))
+    images.append(img)
+deployImages = np.array(images)
+if model == 1:
+    resizedImages = [cv2.resize(img, (28,28), interpolation=cv2.INTER_AREA) for img in deployImages]
+    grayscaleImages = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in resizedImages]
+    blurredImages = [cv2.GaussianBlur(img, (3,3), 0) for img in grayscaleImages]
+    sobelx = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5) for img in blurredImages]
+    sobely = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5) for img in blurredImages]
+    sobelxy = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5) for img in blurredImages]
+    edges = np.array([cv2.Canny(image=img, threshold1=60, threshold2=140) for img in blurredImages])
+    linearizeImages = edges.reshape(edges.shape[0], edges.shape[1] * edges.shape[2])
+else:
+    deployImages = deployImages[:,:,:,0]
+    linearizeImages = deployImages.reshape(deployImages.shape[0], deployImages.shape[1] * deployImages.shape[2])
 
-loss = np.mean(-np.sum(tTest*np.log(y+1e-15), axis=1))
-print(loss)
 
+X = linearizeImages / 255
+X = np.insert(X, X.shape[1], 1, axis=1)
 
-misses=0
-for i in range(len(y)):
-   if np.argmax(y[i]) != np.argmax(tTest[i]):
-       misses +=1
+y = softmax(X.dot(w))    
+  
+predictions = np.argmax(y, axis=1)  
+df = pd.DataFrame({'File Names': filenames, 'Predictions': predictions})
 
-accuracy = (len(y) - misses) / len(y)       
+if model == 1:
+    outputPath = 'outputWorms.xlsx'
+else:
+    outputPath = 'outputMNIST.xlsx'
 
-print(accuracy)
-np.save('weightsWorms', w)
+df.to_excel(outputPath, index=False)
+i = 0
+# misclass = 0
+for prediction in predictions:
+    print(f'Prediction for image {filenames[i]}: {prediction}')
+    # if prediction != 0:
+    #     misclass +=1
+    i+=1
+print(f'Output File: {outputPath}')
+# print(1-misclass/len(predictions))
