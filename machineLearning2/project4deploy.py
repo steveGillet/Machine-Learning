@@ -33,9 +33,9 @@ if model == 1:
     resizedImages = [cv2.resize(img, (28,28), interpolation=cv2.INTER_AREA) for img in deployImages]
     grayscaleImages = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in resizedImages]
     blurredImages = [cv2.GaussianBlur(img, (3,3), 0) for img in grayscaleImages]
-    sobelx = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5) for img in blurredImages]
-    sobely = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5) for img in blurredImages]
-    sobelxy = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5) for img in blurredImages]
+    # sobelx = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5) for img in blurredImages]
+    # sobely = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5) for img in blurredImages]
+    # sobelxy = [cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5) for img in blurredImages]
     edges = np.array([cv2.Canny(image=img, threshold1=60, threshold2=140) for img in blurredImages])
     linearizeImages = edges.reshape(edges.shape[0], edges.shape[1] * edges.shape[2])
 else:
@@ -58,11 +58,11 @@ else:
 
 df.to_excel(outputPath, index=False)
 i = 0
-# misclass = 0
+misclass = 0
 for prediction in predictions:
     print(f'Prediction for image {filenames[i]}: {prediction}')
-    # if prediction != 0:
-    #     misclass +=1
+    if prediction != 0:
+        misclass +=1
     i+=1
 print(f'Output File: {outputPath}')
-# print(1-misclass/len(predictions))
+print(1-misclass/len(predictions))
