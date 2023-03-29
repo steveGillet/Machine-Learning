@@ -20,5 +20,5 @@ with gzip.open(image_file, 'rb') as f:
         label_dir = os.path.join(output_dir, str(label))
         if not os.path.exists(label_dir):
             os.makedirs(label_dir)
-        image.save(os.path.join(label_dir, f'{i}.png'))
+        image.save(os.path.join(label_dir, f'{i}.tif'))
         offset += width * height
