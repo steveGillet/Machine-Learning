@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 df = pd.read_excel('Proj3Train100.xlsx', header=None)
 # print(df)
 X100, y100 = df.to_numpy()[:,:-1],df.to_numpy()[:,-1]
@@ -14,6 +15,7 @@ X1000, y1000 = df.to_numpy()[:,:-1],df.to_numpy()[:,-1]
 df = pd.read_excel('Proj3Test.xlsx', header=None)
 Xtest, yTest = df.to_numpy()[:,:-1],df.to_numpy()[:,-1]
 # print(len(Xtest), len(yTest))
+
 
 class NaiveBayes:
     def __init__(self):
