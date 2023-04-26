@@ -5,6 +5,7 @@ import os
 import numpy as np
 import cv2
 
+
 def load_images_from_folder(folder):
     images = []
     for filename in os.listdir(folder):
