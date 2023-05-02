@@ -40,7 +40,6 @@ for i in range(n):
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
-plt.show()
 
 # Compare the original images with the reconstructed images
 decoded_imgs = autoencoder.predict(x_test)
